@@ -1,0 +1,82 @@
+[
+  {
+    "id": "1",
+    "name": "Wireless Headphones Pro",
+    "price": 299.99,
+    "category": "Electronics",
+    "rating": 4.5,
+    "stock": 45,
+    "image": "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=600&h=600&fit=crop",
+    "description": "Premium wireless headphones with active noise cancellation and 30-hour battery life."
+  },
+  {
+    "id": "2",
+    "name": "Smart Watch Series 5",
+    "price": 399.99,
+    "category": "Electronics",
+    "rating": 4.8,
+    "stock": 32,
+    "image": "https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=600&h=600&fit=crop",
+    "description": "Advanced fitness tracking, heart rate monitoring, and seamless connectivity."
+  },
+  {
+    "id": "3",
+    "name": "Classic Leather Jacket",
+    "price": 249.99,
+    "category": "Clothing",
+    "rating": 4.6,
+    "stock": 18,
+    "image": "https://images.unsplash.com/photo-1551028719-00167b16eac5?w=600&h=600&fit=crop",
+    "description": "Timeless leather jacket crafted from premium materials."
+  },
+  {
+    "id": "4",
+    "name": "Designer Sunglasses",
+    "price": 159.99,
+    "category": "Accessories",
+    "rating": 4.4,
+    "stock": 67,
+    "image": "https://images.unsplash.com/photo-1572635196237-14b3f281503f?w=600&h=600&fit=crop",
+    "description": "UV-protected polarized lenses with Italian design."
+  },
+  {
+    "id": "5",
+    "name": "Minimalist Backpack",
+    "price": 89.99,
+    "category": "Accessories",
+    "rating": 4.7,
+    "stock": 54,
+    "image": "https://images.unsplash.com/photo-1553062407-98eeb64c6a62?w=600&h=600&fit=crop",
+    "description": "Water-resistant backpack with laptop compartment."
+  },
+  {
+    "id": "6",
+    "name": "Running Shoes Elite",
+    "price": 129.99,
+    "category": "Clothing",
+    "rating": 4.9,
+    "stock": 89,
+    "image": "https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=600&h=600&fit=crop",
+    "description": "Lightweight performance shoes with responsive cushioning."
+  },
+  {
+    "id": "7",
+    "name": "Portable Speaker",
+    "price": 79.99,
+    "category": "Electronics",
+    "rating": 4.3,
+    "stock": 120,
+    "image": "https://images.unsplash.com/photo-1608043152269-423dbba4e7e1?w=600&h=600&fit=crop",
+    "description": "Waterproof Bluetooth speaker with 360° sound."
+  },
+  {
+    "id": "8",
+    "name": "Yoga Mat Premium",
+    "price": 49.99,
+    "category": "Accessories",
+    "rating": 4.5,
+    "stock": 200,
+    "image": "https://images.unsplash.com/photo-1601925260368-ae2f83cf8b7f?w=600&h=600&fit=crop",
+    "description": "Extra thick non-slip yoga mat with carrying strap."
+  }
+]
