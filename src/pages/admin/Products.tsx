@@ -1,90 +1,100 @@
-import { useState } from 'react';
-import { Plus, Pencil, Trash2, Search } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Badge } from '@/components/ui/badge';
-import productsData from '@/data/products.json';
-import { toast } from 'sonner';
+import { useState, useEffect } from "react";
+import { Plus, Trash2, Search, Pencil } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Badge } from "@/components/ui/badge";
+import { toast } from "sonner";
+import { useProductStore } from "../../stores/useProductStore";
 
 export default function Products() {
-  const [products, setProducts] = useState(productsData);
-  const [searchQuery, setSearchQuery] = useState('');
+  const { products, fetchProducts, addProduct, updateProduct, deleteProduct, loading, error } =
+    useProductStore();
+  const [searchQuery, setSearchQuery] = useState("");
   const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [editingProduct, setEditingProduct] = useState<any>(null);
+
   const [formData, setFormData] = useState({
-    name: '',
-    price: '',
-    category: 'Electronics',
-    stock: '',
-    rating: '',
-    image: '',
-    description: '',
+    _id: "",
+    name: "",
+    price: "",
+    category: "Electronics",
+    stock: "",
+    image: "",
+    description: "",
   });
 
-  const filteredProducts = products.filter(p =>
+  // 🧩 Load products on mount
+  useEffect(() => {
+    fetchProducts();
+  }, [fetchProducts]);
+
+  const filteredProducts = products.filter((p) =>
     p.name.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
-  const handleSubmit = (e: React.FormEvent) => {
+  // ✅ Handle Add or Edit
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
-    if (editingProduct) {
-      setProducts(products.map(p => 
-        p.id === editingProduct.id 
-          ? { ...p, ...formData, price: Number(formData.price), stock: Number(formData.stock), rating: Number(formData.rating) }
-          : p
-      ));
-      toast.success('Product updated successfully!');
-    } else {
-      const newProduct = {
-        id: String(products.length + 1),
-        ...formData,
+    try {
+      const productPayload = {
+        name: formData.name,
         price: Number(formData.price),
+        category: formData.category,
         stock: Number(formData.stock),
-        rating: Number(formData.rating),
+        image: formData.image,
+        description: formData.description,
       };
-      setProducts([...products, newProduct]);
-      toast.success('Product added successfully!');
+
+      if (formData._id) {
+        await updateProduct(formData._id, productPayload);
+        toast.success("Product updated successfully!");
+      } else {
+        await addProduct(productPayload);
+        toast.success("Product added successfully!");
+      }
+
+      setIsDialogOpen(false);
+      resetForm();
+    } catch {
+      toast.error(formData._id ? "Failed to update product" : "Failed to add product");
     }
-    
-    setIsDialogOpen(false);
-    resetForm();
+  };
+
+  const handleDelete = async (id: string) => {
+    try {
+      await deleteProduct(id);
+      toast.success("Product deleted successfully!");
+    } catch {
+      toast.error("Failed to delete product");
+    }
   };
 
   const handleEdit = (product: any) => {
-    setEditingProduct(product);
     setFormData({
+      _id: product._id,
       name: product.name,
       price: String(product.price),
       category: product.category,
       stock: String(product.stock),
-      rating: String(product.rating),
       image: product.image,
       description: product.description,
     });
     setIsDialogOpen(true);
   };
 
-  const handleDelete = (id: string) => {
-    setProducts(products.filter(p => p.id !== id));
-    toast.success('Product deleted successfully!');
-  };
-
   const resetForm = () => {
-    setEditingProduct(null);
     setFormData({
-      name: '',
-      price: '',
-      category: 'Electronics',
-      stock: '',
-      rating: '',
-      image: '',
-      description: '',
+      _id: "",
+      name: "",
+      price: "",
+      category: "Electronics",
+      stock: "",
+      image: "",
+      description: "",
     });
   };
 
@@ -95,20 +105,28 @@ export default function Products() {
           <h1 className="text-4xl font-bold mb-2">Products</h1>
           <p className="text-muted-foreground">Manage your product inventory</p>
         </div>
-        <Dialog open={isDialogOpen} onOpenChange={(open) => {
-          setIsDialogOpen(open);
-          if (!open) resetForm();
-        }}>
+
+        {/* ➕ Add / ✏️ Edit Product Dialog */}
+        <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
           <DialogTrigger asChild>
-            <Button>
+            <Button
+              onClick={() => {
+                resetForm();
+                setIsDialogOpen(true);
+              }}
+            >
               <Plus className="mr-2 h-4 w-4" />
               Add Product
             </Button>
           </DialogTrigger>
+
           <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
             <DialogHeader>
-              <DialogTitle>{editingProduct ? 'Edit Product' : 'Add New Product'}</DialogTitle>
+              <DialogTitle>
+                {formData._id ? "Edit Product" : "Add New Product"}
+              </DialogTitle>
             </DialogHeader>
+
             <form onSubmit={handleSubmit} className="space-y-4">
               <div className="grid grid-cols-2 gap-4">
                 <div>
@@ -132,18 +150,22 @@ export default function Products() {
                   />
                 </div>
               </div>
-              
+
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <Label htmlFor="category">Category</Label>
-                  <Select value={formData.category} onValueChange={(value) => setFormData({ ...formData, category: value })}>
+                  <Select
+                    value={formData.category}
+                    onValueChange={(value) => setFormData({ ...formData, category: value })}
+                  >
                     <SelectTrigger>
-                      <SelectValue />
+                      <SelectValue placeholder="Select category" />
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="Electronics">Electronics</SelectItem>
                       <SelectItem value="Clothing">Clothing</SelectItem>
                       <SelectItem value="Accessories">Accessories</SelectItem>
+                      <SelectItem value="Shoes">Shoes</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
@@ -160,26 +182,12 @@ export default function Products() {
               </div>
 
               <div>
-                <Label htmlFor="rating">Rating (0-5)</Label>
-                <Input
-                  id="rating"
-                  type="number"
-                  step="0.1"
-                  min="0"
-                  max="5"
-                  value={formData.rating}
-                  onChange={(e) => setFormData({ ...formData, rating: e.target.value })}
-                  required
-                />
-              </div>
-
-              <div>
                 <Label htmlFor="image">Image URL</Label>
                 <Input
                   id="image"
+                  placeholder="https://example.com/product.jpg"
                   value={formData.image}
                   onChange={(e) => setFormData({ ...formData, image: e.target.value })}
-                  placeholder="https://..."
                   required
                 />
               </div>
@@ -195,11 +203,22 @@ export default function Products() {
               </div>
 
               <div className="flex justify-end gap-2">
-                <Button type="button" variant="outline" onClick={() => setIsDialogOpen(false)}>
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => {
+                    setIsDialogOpen(false);
+                    resetForm();
+                  }}
+                >
                   Cancel
                 </Button>
-                <Button type="submit">
-                  {editingProduct ? 'Update' : 'Create'}
+                <Button type="submit" disabled={loading}>
+                  {loading
+                    ? "Saving..."
+                    : formData._id
+                    ? "Update Product"
+                    : "Create Product"}
                 </Button>
               </div>
             </form>
@@ -207,6 +226,7 @@ export default function Products() {
         </Dialog>
       </div>
 
+      {/* 🧾 Product Table */}
       <Card className="border-0 shadow-md">
         <CardHeader>
           <div className="flex items-center justify-between">
@@ -222,63 +242,72 @@ export default function Products() {
             </div>
           </div>
         </CardHeader>
+
         <CardContent>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Image</TableHead>
-                <TableHead>Name</TableHead>
-                <TableHead>Category</TableHead>
-                <TableHead>Price</TableHead>
-                <TableHead>Stock</TableHead>
-                <TableHead>Rating</TableHead>
-                <TableHead className="text-right">Actions</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {filteredProducts.map((product) => (
-                <TableRow key={product.id}>
-                  <TableCell>
-                    <img
-                      src={product.image}
-                      alt={product.name}
-                      className="w-12 h-12 rounded-lg object-cover"
-                    />
-                  </TableCell>
-                  <TableCell className="font-medium">{product.name}</TableCell>
-                  <TableCell>
-                    <Badge variant="secondary">{product.category}</Badge>
-                  </TableCell>
-                  <TableCell>${product.price.toFixed(2)}</TableCell>
-                  <TableCell>
-                    <Badge variant={product.stock > 50 ? 'default' : 'destructive'}>
-                      {product.stock}
-                    </Badge>
-                  </TableCell>
-                  <TableCell>{product.rating}</TableCell>
-                  <TableCell className="text-right">
-                    <div className="flex justify-end gap-2">
-                      <Button
-                        size="sm"
-                        variant="ghost"
-                        onClick={() => handleEdit(product)}
-                      >
-                        <Pencil className="h-4 w-4" />
-                      </Button>
-                      <Button
-                        size="sm"
-                        variant="ghost"
-                        className="text-destructive hover:text-destructive"
-                        onClick={() => handleDelete(product.id)}
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  </TableCell>
+          {loading ? (
+            <p>Loading...</p>
+          ) : error ? (
+            <p className="text-red-500">Error: {error}</p>
+          ) : (
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Image</TableHead>
+                  <TableHead>Name</TableHead>
+                  <TableHead>Category</TableHead>
+                  <TableHead>Price</TableHead>
+                  <TableHead>Stock</TableHead>
+                  <TableHead className="text-right">Actions</TableHead>
                 </TableRow>
-              ))}
-            </TableBody>
-          </Table>
+              </TableHeader>
+
+              <TableBody>
+                {filteredProducts.length > 0 ? (
+                  filteredProducts.map((product) => (
+                    <TableRow key={product._id}>
+                      <TableCell>
+                        <img
+                          src={product.image}
+                          alt={product.name}
+                          className="w-12 h-12 rounded-lg object-cover"
+                        />
+                      </TableCell>
+                      <TableCell>{product.name}</TableCell>
+                      <TableCell>
+                        <Badge variant="secondary">{product.category}</Badge>
+                      </TableCell>
+                      <TableCell>{product.price}</TableCell>
+                      <TableCell>{product.stock}</TableCell>
+                      <TableCell className="text-right space-x-2">
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          className="text-blue-600 hover:text-blue-800"
+                          onClick={() => handleEdit(product)}
+                        >
+                          <Pencil className="h-4 w-4" />
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          className="text-destructive hover:text-destructive"
+                          onClick={() => handleDelete(product._id!)}
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </TableCell>
+                    </TableRow>
+                  ))
+                ) : (
+                  <TableRow>
+                    <TableCell colSpan={6} className="text-center py-6">
+                      No products found
+                    </TableCell>
+                  </TableRow>
+                )}
+              </TableBody>
+            </Table>
+          )}
         </CardContent>
       </Card>
     </div>
