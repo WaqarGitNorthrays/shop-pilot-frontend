@@ -10,6 +10,7 @@ import {
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
+import { useAuthStore } from '@/stores/authStore';
 
 const menuItems = [
   { icon: LayoutDashboard, label: 'Dashboard', path: '/admin/dashboard' },
@@ -20,6 +21,16 @@ const menuItems = [
 ];
 
 export const AdminSidebar = () => {
+  const { user, logoutUser, loading, error } = useAuthStore();
+
+  const handleLogout = () => {
+    if (user?._id) {
+      logoutUser(user._id);
+    } else {
+      // Fallback in case user ID is not available
+      logoutUser('');
+    }
+  }
   const location = useLocation();
 
   return (
@@ -58,7 +69,9 @@ export const AdminSidebar = () => {
           <Settings className="mr-2 h-4 w-4" />
           Settings
         </Button>
-        <Button variant="ghost" className="w-full justify-start text-destructive hover:text-destructive">
+        <Button variant="ghost" 
+                className="w-full justify-start text-destructive hover:text-destructive"
+                onClick={handleLogout}>
           <LogOut className="mr-2 h-4 w-4" />
           Logout
         </Button>

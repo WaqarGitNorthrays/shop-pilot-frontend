@@ -12,16 +12,18 @@ interface User {
 
 interface AuthState {
   user: User | null;
+  users: User[];
   loading: boolean;
   error: string | null;
   register: (username: string, email: string, password: string) => Promise<void>;
   login: (emailOrUsername: string, password: string) => Promise<void>;
-  logout: () => void;
+  logoutUser: (userId: string) => void;
   checkStoredUser: () => void;
 }
 
 export const useAuthStore = create<AuthState>((set) => ({
   user: null,
+  users: [],
   loading: false,
   error: null,
 
@@ -35,14 +37,14 @@ export const useAuthStore = create<AuthState>((set) => ({
         password,
       });
 
-      const data = response.data;
+      const responseData = response.data;
       const userData: User = {
-        _id: data._id,
-        username: data.username,
-        email: data.email,
-        token: data.token,
-        role: data.role || "user",
-        isAdmin: data.role === "admin",
+        _id: responseData.data._id,
+        username: responseData.data.username,
+        email: responseData.data.email,
+        token: responseData.data.token,
+        role: responseData.data.role || "user",
+        isAdmin: responseData.data.role === "admin",
       };
 
       // Save to localStorage
@@ -68,14 +70,14 @@ export const useAuthStore = create<AuthState>((set) => ({
         password,
       });
 
-      const data = response.data;
+      const responseData = response.data;
       const userData: User = {
-        _id: data._id,
-        username: data.username,
-        email: data.email,
-        token: data.token,
-        role: data.role || "user",
-        isAdmin: data.role === "admin",
+        _id: responseData.data._id,
+        username: responseData.data.username,
+        email: responseData.data.email,
+        token: responseData.data.token,
+        role: responseData.data.role || "user",
+        isAdmin: responseData.data.role === "admin",
       };
 
       // Save to localStorage
@@ -91,11 +93,34 @@ export const useAuthStore = create<AuthState>((set) => ({
     }
   },
 
+
+  getUsers: async() => {
+      set({loading: true, error: null})
+      try {
+        const response = await api.get("/users");
+        const data = response.data.data;
+        set({users: data, loading: false});
+      } catch (error: any) {
+        set({
+          loading: false,
+          error: error.response?.data?.message || "Failed to fetch users"
+        })
+      }
+  },
+
   // ✅ Logout
-  logout: () => {
-    localStorage.removeItem("token");
-    localStorage.removeItem("user");
-    set({ user: null });
+  logoutUser: async (id: string) => {
+    set({loading: true, error: null})
+    try {
+       await api.post(`/users/:${id}/logout`);
+       localStorage.removeItem("user");
+       set({user: null, loading: false})
+    } catch (error: any) {
+      set({
+        loading: false,
+        error: error.response?.data?.message || "Logout Failed"
+      })
+    }
   },
 
   // ✅ Restore session if user exists in localStorage

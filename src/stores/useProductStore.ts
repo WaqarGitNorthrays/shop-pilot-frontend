@@ -24,8 +24,17 @@ interface ProductPagination {
   pageSize: number;
 }
 
+interface Category {
+  _id: string;
+  name: string;
+  description: string;
+  isActive: boolean;
+  slug: string;
+}
+
 interface ProductStore {
   products: Product[];
+  categories: Category[];
   currentPage: number;
   totalPages: number;
   totalProducts: number;
@@ -34,6 +43,7 @@ interface ProductStore {
   error: string | null;
 
   fetchProducts: (page?: number, limit?: number) => Promise<void>;
+  fetchCategories: () => Promise<void>;
   addProduct: (product: Omit<Product, "_id">) => Promise<void>;
   updateProduct: (id: string, product: Partial<Product>) => Promise<void>;
   deleteProduct: (id: string) => Promise<void>;
@@ -41,6 +51,7 @@ interface ProductStore {
 
 export const useProductStore = create<ProductStore>((set, get) => ({
   products: [],
+  categories: [],
   currentPage: 1,
   totalPages: 1,
   totalProducts: 0,
@@ -71,10 +82,24 @@ export const useProductStore = create<ProductStore>((set, get) => ({
         pageSize: data.pageSize,
         loading: false,
       });
-    } catch (err: any) {
+    } catch (err: any) { 
       console.error("Fetch products failed:", err);
       set({
         error: err.response?.data?.message || err.message,
+        loading: false,
+      });
+    }
+  },
+
+  fetchCategories: async () => {
+    set({ loading: true, error: null });
+    try {
+      const response = await api.get("/categories");
+      set({ categories: response.data.data, loading: false });
+    } catch (error: any) {
+      console.error("Fetch categories failed:", error);
+      set({
+        error: error.response?.data?.message || error.message,
         loading: false,
       });
     }

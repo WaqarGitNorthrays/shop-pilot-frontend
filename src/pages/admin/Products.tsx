@@ -12,8 +12,17 @@ import { toast } from "sonner";
 import { useProductStore } from "../../stores/useProductStore";
 
 export default function Products() {
-  const { products, fetchProducts, addProduct, updateProduct, deleteProduct, loading, error } =
-    useProductStore();
+  const { 
+    products, 
+    categories,
+    fetchProducts, 
+    fetchCategories,
+    addProduct, 
+    updateProduct, 
+    deleteProduct, 
+    loading, 
+    error 
+  } = useProductStore();
   const [searchQuery, setSearchQuery] = useState("");
   const [isDialogOpen, setIsDialogOpen] = useState(false);
 
@@ -27,10 +36,11 @@ export default function Products() {
     description: "",
   });
 
-  // 🧩 Load products on mount
+  // 🧩 Load products and categories on mount
   useEffect(() => {
     fetchProducts();
-  }, [fetchProducts]);
+    fetchCategories();
+  }, [fetchProducts, fetchCategories]);
 
   const filteredProducts = products.filter((p) =>
     p.name.toLowerCase().includes(searchQuery.toLowerCase())
@@ -162,10 +172,11 @@ export default function Products() {
                       <SelectValue placeholder="Select category" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="Electronics">Electronics</SelectItem>
-                      <SelectItem value="Clothing">Clothing</SelectItem>
-                      <SelectItem value="Accessories">Accessories</SelectItem>
-                      <SelectItem value="Shoes">Shoes</SelectItem>
+                      {categories.map((category) => (
+                        <SelectItem key={category._id} value={category._id}>
+                          {category.name}
+                        </SelectItem>
+                      ))}
                     </SelectContent>
                   </Select>
                 </div>
@@ -274,7 +285,9 @@ export default function Products() {
                       </TableCell>
                       <TableCell>{product.name}</TableCell>
                       <TableCell>
-                        <Badge variant="secondary">{product.category}</Badge>
+                        <Badge variant="secondary">
+                          {categories.find(c => c._id === product.category)?.name || product.category}
+                        </Badge>
                       </TableCell>
                       <TableCell>{product.price}</TableCell>
                       <TableCell>{product.stock}</TableCell>
